@@ -1,3 +1,4 @@
+
 import os
 from datetime import date
 
@@ -8,17 +9,23 @@ import numpy as np
 from keras.models import load_model
 import keras.utils as image
 
+
 # paths
 image_path = "image"
 model_path = 'model'
-filename = str(date.today().strftime("%Y-%m-%d"))
+file_timestamp = str(date.today().strftime("%Y_%m_%d"))
 
 st.title('Flower predictor ')
 
 st.text('Supported flowers: daisy, dandelion, rose, sunflower, tulip')
 
 uploaded_file = st.file_uploader("Upload Image")
-if uploaded_file is not None:
+
+
+if uploaded_file is None:
+    st.error('File uploaded cant be processed')
+
+else:
     # Convert the file to an opencv image.
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
     opencv_image = cv2.imdecode(file_bytes, 1)
@@ -49,3 +56,22 @@ if uploaded_file is not None:
     classes = model.predict(images, batch_size=10)
     st.title('Predicted Flower')
     st.text(categories[np.argmax(model.predict(images))])
+
+    #retrain model
+    predict_wrong = st.checkbox('Is the prediction wrong?')
+
+    if predict_wrong:
+
+        flower_name = st.selectbox("Name of flower", ('daisy','dandelion','rose','sunflower','tulip'))
+        save_button = st.checkbox('Save')
+        if save_button:
+            data_load_state = st.text("saving data ....")
+            file_storage_path=os.path.join("Retraining_data",flower_name)
+            if not os.path.exists(file_storage_path):
+                os.mkdir(os.path.join(file_storage_path))
+            cv2.imwrite(os.path.join(file_storage_path, str(flower_name)+"_"+str(file_timestamp)+".jpg"), opencv_image)
+            st.write(file_storage_path)
+
+
+
+
